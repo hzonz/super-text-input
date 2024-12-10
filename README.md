@@ -22,7 +22,7 @@ In particular, in real-time mode, every time there's an update (debounce based),
 ## Installation (not in HACS, yet...)
 1. Download the files to your `config/www/community/super-text-input/` directory
 2. Add resource in your dashboard configuration. There are two ways to do this:
-    - **Using UI:** _Settings_ → _Dashboards_ → _More Options icon_ → _Resources_ → _Add Resource_ → Set _Url_ as `/local/super-text-input/super-text-input.js` → Set _Resource type_ as `JavaScript Module`.
+    - **Using UI:** _Settings_ → _Dashboards_ → _More Options icon_ → _Resources_ → _Add Resource_ → Set _Url_ as `/local/community/super-text-input/super-text-input.js` → Set _Resource type_ as `JavaScript Module`.
       **Note:** If you do not see the Resources menu, you will need to enable _Advanced Mode_ in your _User Profile_
     - **Using YAML:** Add following code to `lovelace` section.
         ```yaml
