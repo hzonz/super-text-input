@@ -6,6 +6,7 @@ export const DEFAULT_BUTTON_STYLE = {
 	color: "var(--blue-color)",
 	"border-radius": "50%",
 	background: "rgb(from var(--blue-color) r g b / 0.2)",
+    border: "none"  // Default to no border
 };
 
 // Add separate defaults for structural properties
@@ -98,6 +99,7 @@ export function getButtonStyles(button, buttonConfig, isAdditionalButton, positi
 
 	button.style.setProperty("background-color", style.background || `rgb(from ${style.color} r g b / 0.2)`);
 	button.style.setProperty("border-radius", style["border-radius"] || "50%");
+    button.style.setProperty("border", style["border"] || "none");
 }
 
 /**

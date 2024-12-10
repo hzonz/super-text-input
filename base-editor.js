@@ -43,32 +43,42 @@ class BaseCardEditor extends LitElement {
 	 */
 
 	buildYamlEditor(label, config_key, value, default_value) {
-		const editor = document.createElement("ha-yaml-editor");
-		editor.label = label;
-		editor.name = config_key;
-		editor.defaultValue = value || default_value;
-
-		editor.addEventListener("value-changed", (ev) => {
-			// Mark timestamp to prevent immediate re-render
-			this._lastYamlUpdate = Date.now();
-
-			// Update config and propagate change
-			const newConfig = {
-				...this._config,
-				[config_key]: ev.detail.value,
-			};
-
-			this.dispatchEvent(
-				new CustomEvent("config-changed", {
-					detail: { config: newConfig },
-					bubbles: true,
-					composed: true,
-				})
-			);
-		});
-		return editor;
-	}
-
+        const editor = document.createElement("ha-yaml-editor");
+        editor.label = label;
+        editor.name = config_key;
+        editor.defaultValue = value || default_value;
+        
+        // Add hass object reference
+        if (this.hass) {
+            editor.hass = this.hass;
+        }
+    
+        // Update hass when it becomes available
+        this.updateComplete.then(() => {
+            if (this.hass && !editor.hass) {
+                editor.hass = this.hass;
+            }
+        });
+    
+        editor.addEventListener("value-changed", (ev) => {
+            this._lastYamlUpdate = Date.now();
+            const newConfig = {
+                ...this._config,
+                [config_key]: ev.detail.value,
+            };
+            this.dispatchEvent(
+                new CustomEvent("config-changed", {
+                    detail: { config: newConfig },
+                    bubbles: true,
+                    composed: true,
+                })
+            );
+        });
+        
+        return editor;
+    }
+    
+    
 	buildSelectField(label, config_key, options, value, default_value) {
 		let selectOptions = [];
 		for (let i = 0; i < options.length; i++) {

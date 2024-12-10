@@ -3,7 +3,7 @@
  * Provides a customizable text input field with optional buttons and r/t updates
  */
 
-
+// note the super hacky way of restoring focus in r/t mode. HELP!
 
 // Import utilities and constants from card-utils.js
 import {
@@ -47,8 +47,8 @@ class SuperTextInput extends LitElement {
 		};
 	}
 
-  // Add to static constants
-  static DEFAULT_FOCUS_DELAY = 100;
+	// Add to static constants
+	static DEFAULT_FOCUS_DELAY = 100;
 
 	// default initial values
 	static DEFAULT_CONFIG = {
@@ -65,6 +65,7 @@ class SuperTextInput extends LitElement {
 		width: "100%",
 		height: "36px",
 		marginLeft: "0px",
+        marginRight: "0px",
 		offsetLeftMargin: "8px",
 		defaultTextLeftPadding: "6px",
 		defaultTextBottomMargin: "-3px",
@@ -168,19 +169,19 @@ class SuperTextInput extends LitElement {
 	 * Apply styles to the card container
 	 * @param {HTMLElement} card - Card element to style
 	 */
-  _getCardStyles(card) {
-    const cardStyle = this._config.style?.card || {};
+	_getCardStyles(card) {
+		const cardStyle = this._config.style?.card || {};
 
-    card.style.display = "flex";
-    card.style.flexDirection = "row";
-    card.style.alignItems = "center";
-    card.style.height = cardStyle.height || CARD_HEIGHT;
-    card.style.padding = cardStyle.padding || DEFAULT_PADDING;
+		card.style.display = "flex";
+		card.style.flexDirection = "row";
+		card.style.alignItems = "center";
+		card.style.height = cardStyle.height || CARD_HEIGHT;
+		card.style.padding = cardStyle.padding || DEFAULT_PADDING;
 
-    if (cardStyle.background) card.style.background = cardStyle.background;
-    if (cardStyle['border-radius']) card.style.borderRadius = cardStyle['border-radius'];
-    if (cardStyle.border) card.style.border = cardStyle.border;
-}
+		if (cardStyle.background) card.style.background = cardStyle.background;
+		if (cardStyle["border-radius"]) card.style.borderRadius = cardStyle["border-radius"];
+		if (cardStyle.border) card.style.border = cardStyle.border;
+	}
 
 	/**
 	 * Apply styles to the text field
@@ -191,10 +192,13 @@ class SuperTextInput extends LitElement {
 		const hasLeadingButtons = this._config.buttons?.some((btn) => !btn.position || btn.position === "start");
 
 		const styles = { ...SuperTextInput.TEXT_FIELD_STYLES };
+
+        
 		if (hasLeadingButtons) {
 			styles.marginLeft = styles.offsetLeftMargin;
-		}
-
+		} 
+        styles.marginLeft = style["margin-left"] || styles.marginLeft;
+        styles.marginRight = style["margin-right"] || styles.marginRight;
 		Object.assign(textField.style, styles);
 
 		textField.updateComplete.then(() => {
@@ -223,62 +227,59 @@ class SuperTextInput extends LitElement {
 	 * @returns {HTMLElement} Configured text field
 	 */
 	_createTextField() {
-    // Create Home Assistant's material design text field
-    const textField = document.createElement("ha-textfield");
+		// Create Home Assistant's material design text field
+		const textField = document.createElement("ha-textfield");
 
-    // Set up basic field properties from component state
-    textField.label = this.label;          // Display label above input
-    textField.value = this.value;          // Current input value
-    textField.minlength = this.minlength;  // Minimum text length validation
-    textField.maxlength = this.maxlength;  // Maximum text length validation
-    textField.autoValidate = this.pattern; // Enable pattern validation
-    textField.pattern = this.pattern;      // Regex pattern for validation
-    textField.type = this.mode;            // Input type (text, password, etc)
-    textField.id = "textinput";            // ID for DOM queries
-    textField.placeholder = this._config.placeholder || ""; // Placeholder text
+		// Set up basic field properties from component state
+		textField.label = this.label; // Display label above input
+		textField.value = this.value; // Current input value
+		textField.minlength = this.minlength; // Minimum text length validation
+		textField.maxlength = this.maxlength; // Maximum text length validation
+		textField.autoValidate = this.pattern; // Enable pattern validation
+		textField.pattern = this.pattern; // Regex pattern for validation
+		textField.type = this.mode; // Input type (text, password, etc)
+		textField.id = "textinput"; // ID for DOM queries
+		textField.placeholder = this._config.placeholder || ""; // Placeholder text
 
-    // Event Listeners for value changes:
-    // 'change' fires when focus leaves the field (blur)
-    textField.addEventListener("change", this.valueChanged.bind(this));
-    // 'input' fires on every keystroke for real-time updates
-    textField.addEventListener("input", this.inputChanged.bind(this));
+		// Event Listeners for value changes:
+		// 'change' fires when focus leaves the field (blur)
+		textField.addEventListener("change", this.valueChanged.bind(this));
+		// 'input' fires on every keystroke for real-time updates
+		textField.addEventListener("input", this.inputChanged.bind(this));
 
-    // Apply configured styles to the field
-    this._getTextFieldStyles(textField);
+		// Apply configured styles to the field
+		this._getTextFieldStyles(textField);
 
-    // Focus Management: 
-    // This code maintains cursor position and typing flow during real-time updates
-    if (this._update_mode === "realtime" && this._lastUpdate && Date.now() - this._lastUpdate < 1000) {
-      // Three-part check ensures optimal focus handling:
-      //
-      // 1. Real-time Mode Check (this._update_mode === "realtime")
-      //    - Only needed during immediate keystroke updates
-      //    - Blur mode updates happen after focus is lost, so no restoration needed
-      //
-      // 2. Update Timestamp Check (this._lastUpdate)
-      //    - Verifies we have actually performed an update
-      //    - Prevents unnecessary focus management on initial render
-      //    - Timestamp is set in setValue() during real-time updates
-      //
-      // 3. Time Window Check (Date.now() - this._lastUpdate < 1000)
-      //    - Creates 1-second window for focus restoration
-      //    - Matches natural typing rhythm and update cycles
-      //    - Prevents focus jumps during non-typing interactions
-      //
-      // Focus Restoration (setTimeout):
-      //    - 100ms delay ensures DOM stability after updates
-      //    - Arrow function maintains correct 'this' context
-      //    - Returns cursor to input field for uninterrupted typing
+		// Focus Management:
+		// This code maintains cursor position and typing flow during real-time updates
+		if (this._update_mode === "realtime" && this._lastUpdate && Date.now() - this._lastUpdate < 1000) {
+			// Three-part check ensures optimal focus handling:
+			//
+			// 1. Real-time Mode Check (this._update_mode === "realtime")
+			//    - Only needed during immediate keystroke updates
+			//    - Blur mode updates happen after focus is lost, so no restoration needed
+			//
+			// 2. Update Timestamp Check (this._lastUpdate)
+			//    - Verifies we have actually performed an update
+			//    - Prevents unnecessary focus management on initial render
+			//    - Timestamp is set in setValue() during real-time updates
+			//
+			// 3. Time Window Check (Date.now() - this._lastUpdate < 1000)
+			//    - Creates 1-second window for focus restoration
+			//    - Matches natural typing rhythm and update cycles
+			//    - Prevents focus jumps during non-typing interactions
+			//
+			// Focus Restoration (setTimeout):
+			//    - 100ms delay ensures DOM stability after updates
+			//    - Arrow function maintains correct 'this' context
+			//    - Returns cursor to input field for uninterrupted typing
 
-      // this._config.forced_focus_delay is an advanced prop to adjust focus delay
-      setTimeout(
-        () => textField.focus(), 
-        this._config.forced_focus_delay || SuperTextInput.DEFAULT_FOCUS_DELAY
-    );
-    }
+			// this._config.forced_focus_delay is an advanced prop to adjust focus delay
+			setTimeout(() => textField.focus(), this._config.forced_focus_delay || SuperTextInput.DEFAULT_FOCUS_DELAY);
+		}
 
-    return textField;
-}
+		return textField;
+	}
 
 	/**
 	 * Render the card
@@ -375,8 +376,8 @@ window.customCards.push({
 	type: "super-text-input",
 	name: "Super Text Input",
 	description: "A text input card with enhanced features - such as real-time input, icons, buttons and actions",
-  preview: "/local/community/super-text-input/preview.png",
-  configurable: true,
-  version: "0.1.0",
-  customElement: true
+	preview: "/local/community/super-text-input/preview.png",
+	configurable: true,
+	version: "0.1.0",
+	customElement: true,
 });
