@@ -10,7 +10,7 @@ I hate the default text_input card. It's huge, ugly and the onblur update is ann
 <br><br>
 See [credits](#credits) below. This is my first attempt at a custom card. My first public repository. I'm sure there are bugs and missing features.
 
-In particular, in real-time mode, every time there's an update (debounce based), the textfield loses focus. I'm using a hack to keep it focused - but you still get a momentary blink which is annoying.
+In particular, in real-time mode, every time there's an update (debounce based), the textfield loses focus. I'm using a hack to keep it focused - but you still get a momentary blink which is annoying. HELP!
 
 ## Features
 - Real-time or on-blur text updates
